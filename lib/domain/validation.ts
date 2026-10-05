@@ -88,6 +88,8 @@ export const schemas: Record<string, z.ZodTypeAny> = {
       registration: text.default(""),
       warehouseId: id,
       active: z.boolean().default(true),
+      schedule: text.nullable().optional(),
+      maintenanceDate: day.nullable().optional(),
     })
     .strict(),
   "assignment.save": z

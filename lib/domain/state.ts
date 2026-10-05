@@ -133,6 +133,8 @@ export async function readState(
       warehouseId: r.warehouse_id,
       active: r.active,
       salesmanId: r.salesman_id,
+      schedule: r.schedule,
+      maintenanceDate: r.maintenance_date,
     })),
     assignments: assignments.rows.map((r: Row) => ({
       id: r.id,

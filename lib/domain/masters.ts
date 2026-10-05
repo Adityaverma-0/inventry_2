@@ -66,8 +66,8 @@ export async function masterAction(
         );
     }
     await db.query(
-      "INSERT INTO sanket.vehicles(id,name,registration,warehouse_id,active) VALUES($1,$2,$3,$4,$5) ON CONFLICT(id) DO UPDATE SET name=EXCLUDED.name,registration=EXCLUDED.registration,warehouse_id=EXCLUDED.warehouse_id,active=EXCLUDED.active",
-      [id, d.name, d.registration, d.warehouseId, d.active],
+      "INSERT INTO sanket.vehicles(id,name,registration,warehouse_id,active,schedule,maintenance_date) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO UPDATE SET name=EXCLUDED.name,registration=EXCLUDED.registration,warehouse_id=EXCLUDED.warehouse_id,active=EXCLUDED.active,schedule=EXCLUDED.schedule,maintenance_date=EXCLUDED.maintenance_date",
+      [id, d.name, d.registration, d.warehouseId, d.active, d.schedule || null, d.maintenanceDate || null],
     );
   } else if (action === "assignment.save") {
     const v = await vehicleScope(db, actor, d.vehicleId);

@@ -154,8 +154,6 @@ export function LocationsPage() {
                 id: edit?.item?.id,
                 name: f.get("name"),
                 active: f.get("active") === "on",
-                  schedule: f.get("schedule") || undefined,
-                  maintenanceDate: f.get("maintenanceDate") || undefined,
                 ...(edit?.kind === "warehouse"
                   ? { locationId: f.get("locationId") }
                   : {}),
@@ -402,8 +400,6 @@ export function TeamPage() {
                   mobile: f.get("mobile"),
                   password: f.get("password") || undefined,
                   active: f.get("active") === "on",
-                  schedule: f.get("schedule") || undefined,
-                  maintenanceDate: f.get("maintenanceDate") || undefined,
                   role: "salesman",
                   requestId: teamKey,
                 });
@@ -421,8 +417,6 @@ export function TeamPage() {
                   registration: f.get("registration"),
                   warehouseId: f.get("warehouseId"),
                   active: f.get("active") === "on",
-                  schedule: f.get("schedule") || undefined,
-                  maintenanceDate: f.get("maintenanceDate") || undefined,
                 });
               }
               notify("Changes saved");
@@ -493,20 +487,6 @@ export function TeamPage() {
                             </option>
                           ))}
                       </select>
-                    </Field>
-                    <Field label="Weekly schedule">
-                      <Input
-                        name="schedule"
-                        placeholder="Mon: North, Tue: South..."
-                        defaultValue={(edit?.item as Vehicle)?.schedule || ""}
-                      />
-                    </Field>
-                    <Field label="Maintenance Date">
-                      <Input
-                        name="maintenanceDate"
-                        type="date"
-                        defaultValue={(edit?.item as Vehicle)?.maintenanceDate || ""}
-                      />
                     </Field>
                   </>
                 ) : (

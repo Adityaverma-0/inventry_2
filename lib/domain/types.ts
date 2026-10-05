@@ -46,6 +46,8 @@ export type Vehicle = {
   warehouseId: string;
   active: boolean;
   salesmanId: string | null;
+  schedule?: string | null;
+  maintenanceDate?: string | null;
 };
 export type Assignment = {
   id: string;
