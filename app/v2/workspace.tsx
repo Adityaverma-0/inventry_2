@@ -43,6 +43,8 @@ import {
   TextLink,
   type PageId,
 } from "./ui";
+import { SalesmanStockPage, AdminReportsPage } from "./feature-views";
+
 import { WarehousePage } from "./warehouse";
 import Auth from "./auth";
 import { ProductsPage, PackagingPage } from "./products";
@@ -88,6 +90,7 @@ const navigation = [
     items: [
       ["daily", "Daily Report Approvals", ClipboardCheck],
       ["reports", "Reports", FileBarChart2],
+      ["feature-approvals", "Daily Report Approvals (V2)", ClipboardCheck],
     ],
   },
   {
@@ -105,6 +108,7 @@ const workerNavigation = [
     items: [
       ["overview", "Home", House],
       ["inventory", "My Stock", Boxes],
+      ["feature-stock", "My Vehicle Stock", Boxes],
       ["warehouse-stock", "Warehouse Stock", Warehouse],
       ["returns", "Return to Warehouse", Truck],
       ["new-sale", "New Sale", Plus],
@@ -352,6 +356,8 @@ export default function Workspace() {
     sync: <SyncPage />,
     settings: <SettingsPage />,
     "new-sale": <SaleFormPage />,
+    "feature-stock": <SalesmanStockPage />,
+    "feature-approvals": <AdminReportsPage />,
   };
   return (
     <AppContext.Provider value={{ state, refresh, navigate, notify, online }}>

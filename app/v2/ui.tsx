@@ -40,7 +40,9 @@ export type PageId =
   | "settings"
   | "warehouse-stock"
   | "returns"
-  | "new-sale";
+  | "new-sale"
+  | "feature-stock"
+  | "feature-approvals";
 export const AppContext = createContext<{
   state: AppState;
   refresh: () => Promise<void>;
