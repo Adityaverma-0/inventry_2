@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgres:18-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sanket
+      POSTGRES_DB: sanket
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres:/var/lib/postgresql
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U sanket -d sanket"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5173:10000"
+    environment:
+      DATABASE_URL: postgresql://sanket:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/sanket
+      APP_URL: ${APP_URL:-http://127.0.0.1:5173}
+      OWNER_SETUP_TOKEN: ${OWNER_SETUP_TOKEN:?Set a random OWNER_SETUP_TOKEN}
+      DATA_DIR: /app/data
+      TESSERACT_LANG_PATH: /app/runtime/ocr
+    volumes:
+      - documents:/app/data
+volumes:
+  postgres:
+  documents:

@@ -1,0 +1,273 @@
+export type Role = "owner" | "salesman";
+export type Actor = {
+  id: string;
+  name: string;
+  username: string;
+  email: string | null;
+  role: Role;
+  active: boolean;
+  mobile?: string;
+};
+export type UnitLevel = { code: string; label: string; factor: number };
+export type Packaging = {
+  id: string;
+  version: number;
+  baseUnit: string;
+  levels: UnitLevel[];
+  createdAt: string;
+  reason: string;
+};
+export type Product = {
+  id: string;
+  sku: string;
+  name: string;
+  category: string;
+  active: boolean;
+  ready: boolean;
+  minStock: number;
+  price: string | null;
+  priceUnit: string | null;
+  currency: string;
+  packaging: Packaging | null;
+  rawImport?: Record<string, string>;
+  createdAt: string;
+};
+export type Location = { id: string; name: string; active: boolean };
+export type Warehouse = {
+  id: string;
+  name: string;
+  locationId: string;
+  active: boolean;
+};
+export type Vehicle = {
+  id: string;
+  name: string;
+  registration: string;
+  warehouseId: string;
+  active: boolean;
+  salesmanId: string | null;
+};
+export type Assignment = {
+  id: string;
+  vehicleId: string;
+  salesmanId: string;
+  from: string;
+  to: string | null;
+};
+export type Balance = {
+  locationId: string;
+  locationType: "warehouse" | "vehicle";
+  productId: string;
+  quantity: number;
+};
+export type Movement = {
+  id: string;
+  productId: string;
+  locationId: string;
+  locationType: "warehouse" | "vehicle";
+  kind: string;
+  quantity: number;
+  reference: string;
+  actorName: string;
+  createdAt: string;
+  note: string;
+};
+export type QuantityInput = {
+  productId: string;
+  packagingId: string;
+  unitCode: string;
+  quantity: number;
+};
+export type TransactionLine = QuantityInput & {
+  productName: string;
+  baseQuantity: number;
+  levels: UnitLevel[];
+  baseUnit: string;
+};
+export type Sale = {
+  invoiceNumber?: string;
+  customerName?: string;
+  id: string;
+  reference: string;
+  warehouseId?: string | null;
+  vehicleId: string;
+  salesmanId: string;
+  salesmanName: string;
+  day: string;
+  status: string;
+  lines: TransactionLine[];
+  notes: string;
+  createdAt: string;
+  replacesId?: string | null;
+  replacedById?: string | null;
+};
+export type Transfer = {
+  id: string;
+  reference: string;
+  warehouseId: string;
+  vehicleId: string;
+  lines: TransactionLine[];
+  createdAt: string;
+  actorName: string;
+};
+export type ReportLine = {
+  productId: string;
+  productName: string;
+  packagingId: string | null;
+  levels: UnitLevel[];
+  baseUnit: string;
+  opening: number;
+  loaded: number;
+  sold: number;
+  reversed: number;
+  adjustments: number;
+  closing: number;
+  formatted: string;
+};
+export type CashDenomination = { denomination: number; count: number };
+
+export type DailyReport = {
+  businessName?: string;
+  timezone?: string;
+  warehouseId?: string;
+  warehouseName?: string;
+  locationId?: string;
+  locationName?: string;
+  id: string;
+  revisionId: string;
+  revision: number;
+  day: string;
+  vehicleId: string;
+  vehicleName: string;
+  salesmanId: string;
+  salesmanName: string;
+  status: "DRAFT" | "SUBMITTED" | "APPROVED" | "REJECTED" | "REOPENED";
+  notes: string;
+  lines: ReportLine[];
+  submittedAt: string;
+  decidedAt: string | null;
+  decidedBy: string | null;
+  decisionReason: string;
+  sourceHash: string;
+  amendments?: unknown[];
+  cashBreakdown?: Record<string, number>;
+  cashExpected?: number;
+  cashActual?: number;
+  transactionReferences?: {
+    id: string;
+    reference: string;
+    kind: string;
+    createdAt: string;
+    replacesId: string | null;
+    sourceDocumentId: string | null;
+    sourceInvoiceId: string | null;
+    lines: TransactionLine[];
+  }[];
+  decisionHistory?: {
+    decision: string;
+    actor: string;
+    at: string;
+    reason: string;
+  }[];
+  approval?: { actor: string; at: string };
+};
+export type InvoiceLine = {
+  description: string;
+  productId: string;
+  packagingId: string;
+  unitCode: string;
+  invoiceQuantity: number;
+  receivedQuantity: number;
+  reason: string;
+  evidence: string;
+  freeQuantity?: number;
+};
+export type PurchaseInvoice = {
+  id: string;
+  revision: number;
+  fileId: string;
+  fileName: string;
+  mime: string;
+  hash: string;
+  supplier: string;
+  invoiceNumber: string;
+  invoiceDate: string;
+  warehouseId: string;
+  status: "DRAFT" | "READY_FOR_APPROVAL" | "APPROVED_POSTED" | "REJECTED";
+  extractionStatus: "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
+  extractionError: string;
+  extractedText: string;
+  suggestions?: unknown[];
+  extractionWarnings?: string[];
+  extractionMeta?: Record<string, unknown>;
+  lines: InvoiceLine[];
+  createdAt: string;
+  approvedAt: string | null;
+  approvedBy: string | null;
+  receiptReference: string | null;
+  decisionReason: string;
+};
+export type AuditEvent = {
+  id: string;
+  action: string;
+  entityId: string;
+  actorName: string;
+  detail: string;
+  createdAt: string;
+};
+export type LocationSample = {
+  id: string;
+  userId: string;
+  userName: string;
+  vehicleId: string;
+  latitude: number;
+  longitude: number;
+  accuracy: number;
+  capturedAt: string;
+  receivedAt: string;
+};
+export type AppState = {
+  pendingStockRequests: number;
+  user: Actor;
+  settings: {
+    businessName: string;
+    timezone: string;
+    phone: string;
+    address: string;
+    trackingInterval: number;
+    staleMinutes: number;
+    retentionDays: number;
+  };
+  locations: Location[];
+  warehouses: Warehouse[];
+  vehicles: Vehicle[];
+  assignments: Assignment[];
+  users: Actor[];
+  products: Product[];
+  balances: Balance[];
+  movements: Movement[];
+  sales: Sale[];
+  transfers: Transfer[];
+  invoices: PurchaseInvoice[];
+  reports: DailyReport[];
+  audit: AuditEvent[];
+  locationSamples: LocationSample[];
+  serverTime: string;
+};
+export type ActionResult = {
+  id?: string;
+  reference?: string;
+  message: string;
+  [key: string]: unknown;
+};
+
+// Every inventory action takes a stable requestId outside its payload. Reuse it on a retry.
+// API: GET /api/v2/state; POST /api/v2/action {action,data,requestId};
+// GET /api/v2/report?day=YYYY-MM-DD&vehicleId=... returns DailyReport preview;
+// GET /api/v2/report/:id?revision=N returns that immutable revision;
+// POST /api/v2/invoices (multipart file); GET /api/v2/files/:id;
+// POST /api/v2/invoices/:id/extract re-extracts; POST /api/v2/import {csv,confirm,decisions?,requestId};
+// GET /api/v2/products/:id/packaging returns Packaging[];
+// GET /api/v2/export?kind=stock|sales|movements|products|reports&... returns CSV;
+// Auth: GET /api/v2/auth; POST /api/v2/auth {action:'setup'|'login'|'logout'|'password',...};
+// POST /api/v2/team {id?,name,email,mobile?,active?,password?,role:'salesman',requestId}.
