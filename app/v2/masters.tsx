@@ -337,7 +337,7 @@ export function TeamPage() {
           <DataTable
             headers={[
               "Salesman",
-              "Email",
+              "Login ID",
               "Assigned vehicle",
               "Status",
               "Action",
@@ -346,7 +346,7 @@ export function TeamPage() {
               .filter((u) => u.role === "salesman")
               .map((u) => [
                 u.name,
-                u.email,
+                <code>{u.username}</code>,
                 state.vehicles.find((v) => v.salesmanId === u.id)?.name ||
                   "Unassigned",
                 // eslint-disable-next-line react/jsx-key -- DataTable supplies the keyed wrapper for this cell.
@@ -396,7 +396,7 @@ export function TeamPage() {
                 await api("/team", {
                   id: edit?.item?.id,
                   name: f.get("name"),
-                  email: f.get("email"),
+                  username: (edit?.item as Actor)?.username || Math.random().toString(36).substring(2, 10),
                   mobile: f.get("mobile"),
                   password: f.get("password") || undefined,
                   active: f.get("active") === "on",
@@ -491,15 +491,6 @@ export function TeamPage() {
                   </>
                 ) : (
                   <>
-                    <Field label="Email">
-                      <Input
-                        name="username"
-                        type="text"
-                        defaultValue={(edit?.item as Actor)?.username}
-                        required
-                        autoComplete="off"
-                      />
-                    </Field>
                     <Field label="Mobile">
                       <Input name="mobile" type="tel" />
                     </Field>

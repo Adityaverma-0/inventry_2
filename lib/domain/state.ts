@@ -47,7 +47,7 @@ export async function readState(
       [isOwner, actor.id],
     ),
     await run(
-      "SELECT id,name,email,mobile,role,active FROM sanket.users WHERE $1 OR id=$2 ORDER BY name",
+      "SELECT id,name,username,email,mobile,role,active FROM sanket.users WHERE $1 OR id=$2 ORDER BY name",
       [isOwner, actor.id],
     ),
     await run(
