@@ -52,24 +52,29 @@ export async function verifyPassword(password: string, encoded: string) {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 export function canonicalOrigin(request: NextRequest) {
-  const value =
-    process.env.APP_URL ||
-    request.nextUrl.origin ||
-    "";
-  if (!value)
+  if (process.env.APP_URL) {
+    const url = new URL(process.env.APP_URL);
+    if (
+      !["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) &&
+      url.protocol !== "https:" &&
+      process.env.NODE_ENV === "production"
+    ) {
+      throw new HttpError("Production APP_URL must use HTTPS.", 503, "CONFIGURATION");
+    }
+    return url.origin;
+  }
+
+  const hostHeader = request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host;
+  const protoHeader = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol;
+  
+  const host = hostHeader.split(",")[0].trim();
+  let proto = protoHeader.split(",")[0].trim().replace(":", "");
+  
+  if (!host) {
     throw new HttpError("APP_URL must be configured.", 503, "CONFIGURATION");
-  const url = new URL(value);
-  if (
-    !["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) &&
-    url.protocol !== "https:" &&
-    process.env.NODE_ENV === "production"
-  )
-    throw new HttpError(
-      "Production APP_URL must use HTTPS.",
-      503,
-      "CONFIGURATION",
-    );
-  return url.origin;
+  }
+
+  return `${proto}://${host}`;
 }
 export function assertSameOrigin(request: NextRequest) {
   const expected = canonicalOrigin(request);
