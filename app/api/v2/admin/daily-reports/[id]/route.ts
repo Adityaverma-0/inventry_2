@@ -6,16 +6,17 @@ import { HttpError } from "@/lib/server/security";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const actor = await requireUser(request, true);
+    const resolvedParams = await params;
     
     const reports = await query(
       `SELECT r.*, u.name as salesman_name 
        FROM sanket.feature_daily_reports r
        JOIN sanket.users u ON u.id = r.salesman_id
        WHERE r.id = $1`, 
-       [params.id]
+       [resolvedParams.id]
     );
     if (reports.length === 0) throw new HttpError("Report not found", 404);
     
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         FROM sanket.feature_daily_report_items i
         JOIN sanket.products p ON p.id = i.product_id
         WHERE i.report_id = $1`,
-        [params.id]
+        [resolvedParams.id]
     );
 
     return json({ report: reports[0], items });

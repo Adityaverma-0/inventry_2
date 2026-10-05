@@ -6,13 +6,14 @@ import { HttpError } from "@/lib/server/security";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const actor = await requireUser(request);
+    const resolvedParams = await params;
     
     const row = await query(
       "SELECT salesman_id, status FROM sanket.feature_daily_reports WHERE id = $1", 
-      [params.id]
+      [resolvedParams.id]
     );
     
     if (row.length === 0) throw new HttpError("Report not found.", 404);
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     
     await query(
       "UPDATE sanket.feature_daily_reports SET status = 'SUBMITTED', submitted_at = now() WHERE id = $1",
-      [params.id]
+      [resolvedParams.id]
     );
 
     return json({ message: "Report submitted." });

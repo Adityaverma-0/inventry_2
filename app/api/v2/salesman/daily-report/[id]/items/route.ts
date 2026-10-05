@@ -6,14 +6,15 @@ import { HttpError } from "@/lib/server/security";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const actor = await requireUser(request);
+    const resolvedParams = await params;
     
     // Check report status
     const reportList = await query(
       "SELECT salesman_id, status FROM sanket.feature_daily_reports WHERE id = $1", 
-      [params.id]
+      [resolvedParams.id]
     );
     if (reportList.length === 0) throw new HttpError("Report not found.", 404);
     const report = reportList[0];
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     
     await query(
       "INSERT INTO sanket.feature_daily_report_items (report_id, product_id, type, qty, reason) VALUES ($1, $2, $3, $4, $5)",
-      [params.id, productId, type, qty, reason]
+      [resolvedParams.id, productId, type, qty, reason]
     );
 
     return json({ message: "Item request added." });

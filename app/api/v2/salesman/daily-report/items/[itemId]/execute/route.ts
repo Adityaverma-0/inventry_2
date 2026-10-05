@@ -6,9 +6,10 @@ import { HttpError } from "@/lib/server/security";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest, { params }: { params: { itemId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ itemId: string }> }) {
   try {
     const actor = await requireUser(request);
+    const resolvedParams = await params;
     
     await transaction(async (client) => {
         // 1. Get the item and report status
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest, { params }: { params: { itemId:
              FROM sanket.feature_daily_report_items i
              JOIN sanket.feature_daily_reports r ON i.report_id = r.id
              WHERE i.id = $1 FOR UPDATE`,
-             [params.itemId]
+             [resolvedParams.itemId]
         );
         
         if (itemRes.rowCount === 0) throw new HttpError("Item not found.", 404);
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest, { params }: { params: { itemId:
         }
         
         // 3. Mark executed
-        await client.query("UPDATE sanket.feature_daily_report_items SET status = 'EXECUTED', executed_at = now() WHERE id = $1", [params.itemId]);
+        await client.query("UPDATE sanket.feature_daily_report_items SET status = 'EXECUTED', executed_at = now() WHERE id = $1", [resolvedParams.itemId]);
     });
     
     return json({ message: "Execution successful." });

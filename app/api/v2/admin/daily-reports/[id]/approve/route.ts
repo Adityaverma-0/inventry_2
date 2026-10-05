@@ -6,14 +6,15 @@ import { HttpError } from "@/lib/server/security";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const actor = await requireUser(request, true);
+    const resolvedParams = await params;
     
     await transaction(async (client) => {
         const reportRes = await client.query(
             "SELECT * FROM sanket.feature_daily_reports WHERE id = $1 FOR UPDATE", 
-            [params.id]
+            [resolvedParams.id]
         );
         if (reportRes.rowCount === 0) throw new HttpError("Report not found", 404);
         const report = reportRes.rows[0];
@@ -23,12 +24,12 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         
         await client.query(
             "UPDATE sanket.feature_daily_reports SET status = 'APPROVED', approved_by = $1, approved_at = now() WHERE id = $2",
-            [actor.id, params.id]
+            [actor.id, resolvedParams.id]
         );
         
         await client.query(
             "UPDATE sanket.feature_daily_report_items SET status = 'APPROVED' WHERE report_id = $1 AND status = 'PENDING_APPROVAL'",
-            [params.id]
+            [resolvedParams.id]
         );
     });
 
