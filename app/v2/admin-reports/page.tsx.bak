@@ -1,7 +1,7 @@
 "use client";
 import { Panel } from "../ui";
 
-export default function AdminReportsPage() {
+export function AdminReportsPage() {
   return (
     <Panel title="Daily Report Approvals">
         <p>Approve or Reject daily reports from salesmen.</p>
