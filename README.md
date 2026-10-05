@@ -95,3 +95,4 @@ Generated test evidence and synthetic account credentials go under the ignored `
 Open **Return to Warehouse** for holding stock or requesting a full/partial unload; open **Warehouse Stock** for home warehouse availability, allocation and discrepancy requests. Owners approve requests from their details. **Confirm & Print Invoice** posts through the existing sale flow and opens its immutable invoice. Reprint from Sales history. See [implementation and verification](docs/WAREHOUSE-ENHANCEMENTS.md), including the manual native print/PDF check and fields not supported by the existing financial model.
 # Inventory-Managmnet
 # inventry_managment_2
+# inventry_managment_2
