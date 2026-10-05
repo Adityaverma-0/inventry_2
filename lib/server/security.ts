@@ -54,13 +54,15 @@ export async function verifyPassword(password: string, encoded: string) {
 export function canonicalOrigin(request: NextRequest) {
   const value =
     process.env.APP_URL ||
-    (process.env.NODE_ENV !== "production" ? request.nextUrl.origin : "");
+    request.nextUrl.origin ||
+    "";
   if (!value)
     throw new HttpError("APP_URL must be configured.", 503, "CONFIGURATION");
   const url = new URL(value);
   if (
     !["127.0.0.1", "localhost", "[::1]"].includes(url.hostname) &&
-    url.protocol !== "https:"
+    url.protocol !== "https:" &&
+    process.env.NODE_ENV === "production"
   )
     throw new HttpError(
       "Production APP_URL must use HTTPS.",

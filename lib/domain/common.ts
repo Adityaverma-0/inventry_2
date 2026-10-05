@@ -137,22 +137,32 @@ export async function writableDay(
   vehicleId: string,
   inputDay?: string,
 ): Promise<string> {
-  const day = await today(db);
-  insist(
-    !inputDay || inputDay === day,
-    "STALE_DAY",
-    "This entry belongs to an earlier business date. Ask an owner to resolve the conflict.",
-    409,
-  );
-  const report = await one(
+  let day = await today(db);
+  let report = await one(
     db,
     "SELECT sealed FROM sanket.daily_reports WHERE vehicle_id=$1 AND day=$2 FOR UPDATE",
     [vehicleId, day],
   );
+  if (report?.sealed) {
+    const d = new Date(`${day}T12:00:00Z`);
+    d.setDate(d.getDate() + 1);
+    day = d.toISOString().slice(0, 10);
+    report = await one(
+      db,
+      "SELECT sealed FROM sanket.daily_reports WHERE vehicle_id=$1 AND day=$2 FOR UPDATE",
+      [vehicleId, day],
+    );
+    insist(
+      !report?.sealed,
+      "DAY_SEALED",
+      "This vehicle’s business date is submitted. Ask an owner to reopen it before changing stock.",
+      409,
+    );
+  }
   insist(
-    !report?.sealed,
-    "DAY_SEALED",
-    "This vehicle’s business date is submitted. Ask an owner to reopen it before changing stock.",
+    !inputDay || inputDay === day,
+    "STALE_DAY",
+    "This entry belongs to an earlier business date. Ask an owner to resolve the conflict.",
     409,
   );
   return day;
