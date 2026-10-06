@@ -1158,7 +1158,7 @@ function SaleForm({ onClose }: { onClose: () => void }) {
         const entry: OutboxEntry = {
           id,
           userId: state.user.id,
-          data: { vehicleId, assignmentId, day, lines, notes, customer, tax, discount },
+          data: { vehicleId, assignmentId, day, lines, notes, customer, tax: tax || undefined, discount: discount || undefined },
           createdAt: new Date().toISOString(),
           state: "Pending",
           error: "",

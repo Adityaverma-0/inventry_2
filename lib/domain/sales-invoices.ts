@@ -47,7 +47,8 @@ function money(minor: bigint): string {
   return `${minor / BigInt(100)}.${(minor % BigInt(100)).toString().padStart(2, "0")}`;
 }
 function minor(value: string): bigint {
-  return BigInt(value.replace(".", ""));
+  const [whole, fraction = ""] = value.split(".");
+  return BigInt(whole) * BigInt(100) + BigInt(fraction.padEnd(2, "0"));
 }
 export async function captureSalesInvoice(
   db: DbClient,

@@ -155,6 +155,9 @@ export type DailyReport = {
   cashBreakdown?: Record<string, number>;
   cashExpected?: number;
   cashActual?: number;
+  totalSales?: number;
+  upiExpected?: number;
+  bankExpected?: number;
   transactionReferences?: {
     id: string;
     reference: string;
