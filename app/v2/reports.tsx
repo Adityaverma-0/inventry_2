@@ -216,7 +216,7 @@ export function DailyReportsPage() {
         {preview && (
           <>
             <ReportDetail report={preview} />
-            <CashCounter onChange={(b, t) => { setCashBreakdown(b); setCashTotalPaise(t); }} />
+            <CashCounter maxAmount={preview.cashExpected} onChange={(b, t) => { setCashBreakdown(b); setCashTotalPaise(t); }} />
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
