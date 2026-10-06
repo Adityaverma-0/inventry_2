@@ -155,6 +155,8 @@ export type DailyReport = {
   cashBreakdown?: Record<string, number>;
   cashExpected?: number;
   cashActual?: number;
+  submittedAmount?: number;
+  shortageReason?: string;
   totalSales?: number;
   upiExpected?: number;
   bankExpected?: number;

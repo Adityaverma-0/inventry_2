@@ -49,6 +49,8 @@ export function DailyReportsPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [notes, setNotes] = useState("");
+  const [submittedAmountStr, setSubmittedAmountStr] = useState("");
+  const [shortageReason, setShortageReason] = useState("");
   const [cashBreakdown, setCashBreakdown] = useState<Record<string, number>>({});
   const [cashTotalPaise, setCashTotalPaise] = useState(0);
   const mutation = useMutation(refresh);
@@ -109,6 +111,8 @@ export function DailyReportsPage() {
                     ),
                   );
                   setNotes("");
+                  setSubmittedAmountStr("");
+                  setShortageReason("");
                 } catch (e) {
                   setError(e instanceof Error ? e.message : "Preview failed");
                 } finally {
@@ -236,6 +240,11 @@ export function DailyReportsPage() {
                     day: preview.day,
                     notes,
                     expectedSourceHash: preview.sourceHash,
+                    cashBreakdown,
+                    cashExpected: preview.cashExpected,
+                    cashActual: cashTotalPaise,
+                    submittedAmount: Number(submittedAmountStr || "0") * 100,
+                    shortageReason
                   });
                   notify(
                     "Daily report submitted for owner approval. This vehicle-day is now closed to ordinary entries.",
@@ -248,6 +257,55 @@ export function DailyReportsPage() {
                 }
               }}
             >
+              <div style={{ marginTop: 24, padding: "16px", background: "#f9fafb", borderRadius: "8px", border: "1px solid #e5e7eb", marginBottom: 24 }}>
+                <h3 style={{ margin: "0 0 16px 0" }}>Final Amount Submission</h3>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                  <span>Recorded Sales Amount</span>
+                  <strong>₹{((preview.totalSales || 0) / 100).toFixed(2)}</strong>
+                </div>
+                <Field label={`Submitted Amount (₹)`}>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={submittedAmountStr}
+                    onChange={(e) => setSubmittedAmountStr(e.target.value)}
+                    required
+                  />
+                </Field>
+                {(() => {
+                  const subAmt = Number(submittedAmountStr || "0");
+                  const expected = (preview.totalSales || 0) / 100;
+                  const diff = expected - subAmt;
+                  if (submittedAmountStr !== "" && subAmt > expected) {
+                      return <div className="sd-notice sd-warning">❌ Not Allowed: Submitted amount cannot be higher than recorded sales.</div>;
+                  }
+                  if (submittedAmountStr !== "" && diff > 0) {
+                      return (
+                        <>
+                          <div className="sd-notice sd-warning">
+                            ⚠️ Submitted amount is less than the recorded sales amount. Please verify the amount before submitting.<br/><br/>
+                            Sales Amount: ₹{expected.toFixed(2)}<br/>
+                            Submitted Amount: ₹{subAmt.toFixed(2)}<br/>
+                            Difference: ₹{diff.toFixed(2)}
+                          </div>
+                          <Field label="Shortage Reason (Required)">
+                            <textarea
+                              value={shortageReason}
+                              onChange={(e) => setShortageReason(e.target.value)}
+                              rows={2}
+                              required
+                            />
+                          </Field>
+                        </>
+                      );
+                  }
+                  if (submittedAmountStr !== "" && diff === 0) {
+                      return <div className="sd-notice" style={{ color: "green" }}>✅ Valid: Submitted amount matches recorded sales.</div>;
+                  }
+                  return null;
+                })()}
+              </div>
               <Field label="Submission notes">
                 <textarea
                   value={notes}
@@ -275,7 +333,7 @@ export function DailyReportsPage() {
                   <Printer size={14} />
                   Print draft
                 </Button>
-                <Button disabled={!online} busy={mutation.busy}>
+                <Button disabled={!online || (Number(submittedAmountStr || "0") > (preview.totalSales || 0) / 100) || (Number(submittedAmountStr || "0") < (preview.totalSales || 0) / 100 && !shortageReason)} busy={mutation.busy}>
                   Submit for owner approval
                 </Button>
               </div>
@@ -445,6 +503,29 @@ export function ReportDetail({ report }: { report: DailyReport }) {
         Confirmed vehicle returns are included as negative signed adjustments.
         This is ledger stock, not a verified physical count.
       </div>
+      {report.submittedAmount !== undefined && (
+        <div style={{ marginTop: 24, padding: "16px", background: "#f9fafb", borderRadius: "8px", border: "1px solid #e5e7eb", marginBottom: 24 }}>
+          <h3 style={{ margin: "0 0 16px 0" }}>Financial Reconciliation</h3>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <span>Expected Sales Amount:</span>
+            <strong>₹{((report.totalSales || 0) / 100).toFixed(2)}</strong>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <span>Submitted Amount:</span>
+            <strong>₹{((report.submittedAmount || 0) / 100).toFixed(2)}</strong>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, color: (report.submittedAmount || 0) < (report.totalSales || 0) ? "red" : "green" }}>
+            <span>Difference:</span>
+            <strong>₹{(((report.totalSales || 0) - (report.submittedAmount || 0)) / 100).toFixed(2)}</strong>
+          </div>
+          {report.shortageReason && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #e5e7eb" }}>
+              <span style={{ fontWeight: 600, display: "block", marginBottom: 4 }}>Shortage Reason:</span>
+              <span>{report.shortageReason}</span>
+            </div>
+          )}
+        </div>
+      )}
       {report.notes && (
         <p className="sd-notice">Submitter notes: {report.notes}</p>
       )}
@@ -947,6 +1028,9 @@ export function ReportsPage() {
       "Salesman",
       "Revision",
       "Status",
+      "Total App Sales",
+      "Submitted Amount",
+      "Shortage",
       "Submitted",
       "Decided",
       "Reason",
@@ -965,6 +1049,9 @@ export function ReportsPage() {
         r.salesmanName,
         r.revision,
         r.status,
+        ((r.totalSales || 0) / 100).toFixed(2),
+        ((r.submittedAmount || 0) / 100).toFixed(2),
+        (((r.totalSales || 0) - (r.submittedAmount || 0)) / 100).toFixed(2),
         dateTime(r.submittedAt),
         dateTime(r.decidedAt),
         r.decisionReason,

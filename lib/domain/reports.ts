@@ -265,6 +265,8 @@ export async function reportAction(
       cashBreakdown?: Record<string, number>;
       cashExpected?: number;
       cashActual?: number;
+      submittedAmount?: number;
+      shortageReason?: string;
       day: string;
       vehicleId: string;
       notes: string;
@@ -320,6 +322,8 @@ export async function reportAction(
       cashBreakdown: p.cashBreakdown,
       cashExpected: p.cashExpected,
       cashActual: p.cashActual,
+      submittedAmount: p.submittedAmount,
+      shortageReason: p.shortageReason || "",
       submittedAt: new Date().toISOString(),
     };
     await db.query(
