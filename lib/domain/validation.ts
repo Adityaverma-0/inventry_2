@@ -190,6 +190,17 @@ export const schemas: Record<string, z.ZodTypeAny> = {
         })
         .strict()
         .optional(),
+      tax: z.string().regex(/^\d{1,14}(\.\d{1,2})?$/).optional(),
+      discount: z.string().regex(/^\d{1,14}(\.\d{1,2})?$/).optional(),
+      payments: z
+        .array(
+          z.object({
+            method: z.string().min(1),
+            amount: z.string().regex(/^\d{1,14}(\.\d{1,2})?$/),
+            reference: text.optional(),
+          })
+        )
+        .optional(),
       ...scope,
     })
     .strict(),
@@ -199,6 +210,17 @@ export const schemas: Record<string, z.ZodTypeAny> = {
       lines: z.array(line).max(300),
       reason,
       void: z.boolean().default(false),
+      tax: z.string().regex(/^\d{1,14}(\.\d{1,2})?$/).optional(),
+      discount: z.string().regex(/^\d{1,14}(\.\d{1,2})?$/).optional(),
+      payments: z
+        .array(
+          z.object({
+            method: z.string().min(1),
+            amount: z.string().regex(/^\d{1,14}(\.\d{1,2})?$/),
+            reference: text.optional(),
+          })
+        )
+        .optional(),
       ...scope,
     })
     .strict(),

@@ -137,16 +137,42 @@ export default function InvoiceView({ id }: { id: string }) {
             </strong>
           </p>
         ))}
+        {invoice.subtotal && (
+          <p>
+            <strong>Subtotal: </strong> {invoice.totals[0]?.currency || "INR"} {invoice.subtotal}
+          </p>
+        )}
+        {invoice.tax && (
+          <p>
+            <strong>Tax: </strong> {invoice.totals[0]?.currency || "INR"} {invoice.tax}
+          </p>
+        )}
+        {invoice.discount && (
+          <p>
+            <strong>Discount: </strong> {invoice.totals[0]?.currency || "INR"} {invoice.discount}
+          </p>
+        )}
+        {invoice.grandTotal && (
+          <p>
+            <strong>Grand Total: </strong> {invoice.totals[0]?.currency || "INR"} {invoice.grandTotal}
+          </p>
+        )}
+        {invoice.payments && invoice.payments.length > 0 && (
+          <section className="invoice-payments">
+            <h3 style={{marginTop: 15}}>Payments</h3>
+             {invoice.payments.map((p, i) => (
+                <p key={i}>
+                    <strong>{p.method}: </strong> {invoice.totals[0]?.currency || "INR"} {p.amount} {p.reference && `(${p.reference})`}
+                </p>
+             ))}
+          </section>
+        )}
         {!invoice.completePricing && (
           <p>
             A full invoice total is unavailable because one or more prices were
             not recorded.
           </p>
         )}
-        <p>
-          Discount, tax, payment method, amount paid and balance due: not
-          recorded by this sales workflow.
-        </p>
         <p>
           Line amounts use the recorded price unit and are rounded to two
           decimal places.

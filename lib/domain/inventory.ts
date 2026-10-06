@@ -245,6 +245,11 @@ export async function inventoryAction(
         doc.id,
       ]))!,
       d.customer,
+      {
+        tax: d.tax,
+        discount: d.discount,
+        payments: d.payments,
+      }
     );
     return {
       id: doc.id,
@@ -340,6 +345,11 @@ export async function inventoryAction(
         doc.id,
       ]))!,
       originalInvoice?.snapshot?.customer,
+      {
+        tax: d.tax ?? originalInvoice?.snapshot?.tax,
+        discount: d.discount ?? originalInvoice?.snapshot?.discount,
+        payments: d.payments ?? originalInvoice?.snapshot?.payments,
+      }
     );
     await db.query(
       "UPDATE sanket.stock_documents SET status='CORRECTED',replaced_by_id=$2 WHERE id=$1",

@@ -1114,6 +1114,30 @@ function SaleForm({ onClose }: { onClose: () => void }) {
   const [id] = useState(requestId);
   const [day] = useState(() => businessDay(state));
   const [attempt, setAttempt] = useState(false);
+  const [tax, setTax] = useState("");
+  const [discount, setDiscount] = useState("");
+
+  const calculatedSubtotal = useMemo(() => {
+    let sum = 0;
+    for (const l of lines) {
+      if (!l.productId || !l.quantity || !l.unitCode) continue;
+      const p = state.products.find(x => x.id === l.productId);
+      if (!p || !p.price || !p.packaging) continue;
+      const factor = p.packaging.levels.find(level => level.code === l.unitCode)?.factor;
+      const priceFactor = p.packaging.levels.find(level => level.code === p.priceUnit)?.factor;
+      if (!factor || !priceFactor) continue;
+
+      const baseQuantity = l.quantity * factor;
+      const priceValue = Number(p.price);
+      sum += (priceValue * baseQuantity) / priceFactor;
+    }
+    return sum;
+  }, [lines, state.products]);
+
+  const calculatedGrandTotal = useMemo(() => {
+    return Math.max(0, calculatedSubtotal + Number(tax || 0) - Number(discount || 0));
+  }, [calculatedSubtotal, tax, discount]);
+
   const assignmentId = state.assignments.find(
     (a) => a.vehicleId === vehicleId && !a.to,
   )?.id;
@@ -1134,7 +1158,7 @@ function SaleForm({ onClose }: { onClose: () => void }) {
         const entry: OutboxEntry = {
           id,
           userId: state.user.id,
-          data: { vehicleId, assignmentId, day, lines, notes, customer },
+          data: { vehicleId, assignmentId, day, lines, notes, customer, tax, discount },
           createdAt: new Date().toISOString(),
           state: "Pending",
           error: "",
@@ -1224,6 +1248,30 @@ function SaleForm({ onClose }: { onClose: () => void }) {
                 />
               </Field>
             ))}
+          </div>
+          <div className="sd-form" style={{ marginTop: 20 }}>
+            <Field label="Discount Amount (₹)">
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+              />
+            </Field>
+            <Field label="Tax Amount (₹)">
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={tax}
+                onChange={(e) => setTax(e.target.value)}
+              />
+            </Field>
+          </div>
+          <div className="sd-notice" style={{ marginTop: 15 }}>
+            <strong>Subtotal: </strong> ₹{calculatedSubtotal.toFixed(2)} <br/>
+            <strong>Grand Total: </strong> ₹{calculatedGrandTotal.toFixed(2)}
           </div>
           <div style={{ marginTop: 20 }}>
             <Field label="Notes (optional)">

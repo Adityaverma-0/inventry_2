@@ -20,6 +20,11 @@ export type InvoiceSnapshot = {
     currency: string;
     total: string | null;
   })[];
+  tax?: string;
+  discount?: string;
+  subtotal?: string;
+  grandTotal?: string;
+  payments?: { method: string; amount: string; reference?: string }[];
   totals: { currency: string; amount: string }[];
   completePricing: boolean;
   historical: boolean;
@@ -48,8 +53,13 @@ export async function captureSalesInvoice(
   db: DbClient,
   doc: Row,
   customer?: InvoiceSnapshot["customer"],
+  extras?: {
+    tax?: string;
+    discount?: string;
+    payments?: { method: string; amount: string; reference?: string }[];
+  }
 ): Promise<void> {
-  const snapshot = await makeSnapshot(db, doc, customer, false);
+  const snapshot = await makeSnapshot(db, doc, customer, false, extras);
   await db.query(
     "INSERT INTO sanket.sales_invoices(sale_id,invoice_number,snapshot) VALUES($1,$2,$3)",
     [doc.id, snapshot.invoiceNumber, JSON.stringify(snapshot)],
@@ -60,6 +70,11 @@ async function makeSnapshot(
   doc: Row,
   customer: InvoiceSnapshot["customer"] | undefined,
   historical: boolean,
+  extras?: {
+    tax?: string;
+    discount?: string;
+    payments?: { method: string; amount: string; reference?: string }[];
+  }
 ): Promise<InvoiceSnapshot> {
   const config = await settings(db);
   const products = new Map<string, Row>(
@@ -92,6 +107,22 @@ async function makeSnapshot(
         l.currency,
         (totals.get(l.currency) || BigInt(0)) + minor(l.total),
       );
+
+  let subtotalAmount = BigInt(0);
+  let defaultCurrency = "INR";
+  if (totals.size > 0) {
+    const firstKey = totals.keys().next().value;
+    if (firstKey) defaultCurrency = firstKey;
+    subtotalAmount = totals.get(defaultCurrency) || BigInt(0);
+  }
+
+  let grandTotalAmount = subtotalAmount;
+  if (!historical && extras) {
+    const taxMinor = extras.tax ? minor(extras.tax) : BigInt(0);
+    const discountMinor = extras.discount ? minor(extras.discount) : BigInt(0);
+    grandTotalAmount = grandTotalAmount + taxMinor - discountMinor;
+  }
+
   const v = await one(
     db,
     "SELECT v.name,w.name AS warehouse_name FROM sanket.vehicles v LEFT JOIN sanket.warehouses w ON w.id=$2 WHERE v.id=$1",
@@ -113,6 +144,11 @@ async function makeSnapshot(
     warehouseName: v?.warehouse_name || "",
     vehicleName: v?.name || "",
     lines,
+    tax: extras?.tax,
+    discount: extras?.discount,
+    subtotal: money(subtotalAmount),
+    grandTotal: money(grandTotalAmount),
+    payments: extras?.payments,
     totals: [...totals].map(([currency, amount]) => ({
       currency,
       amount: money(amount),
