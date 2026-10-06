@@ -136,6 +136,16 @@ export function businessDay(state?: AppState) {
     day: "2-digit",
   }).format(new Date());
 }
+export function activeVehicleDay(state: AppState, vehicleId: string) {
+  let day = businessDay(state);
+  const report = state.reports.find(r => r.vehicleId === vehicleId && r.day === day);
+  if (report?.status === "SUBMITTED" || report?.status === "APPROVED") {
+    const d = new Date(`${day}T12:00:00Z`);
+    d.setDate(d.getDate() + 1);
+    day = d.toISOString().slice(0, 10);
+  }
+  return day;
+}
 export function dateTime(value?: string | null, timeZone = "Asia/Kolkata") {
   return value
     ? new Intl.DateTimeFormat("en-IN", {

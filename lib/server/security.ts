@@ -68,7 +68,7 @@ export function canonicalOrigin(request: NextRequest) {
   const protoHeader = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol;
   
   const host = hostHeader.split(",")[0].trim();
-  let proto = protoHeader.split(",")[0].trim().replace(":", "");
+  const proto = protoHeader.split(",")[0].trim().replace(":", "");
   
   if (!host) {
     throw new HttpError("APP_URL must be configured.", 503, "CONFIGURATION");

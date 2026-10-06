@@ -12,7 +12,7 @@ import type {
 } from "@/lib/domain/types";
 import {
   api,
-  businessDay,
+  activeVehicleDay,
   dateTime,
   outboxPut,
   requestId,
@@ -1112,7 +1112,7 @@ function SaleForm({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [id] = useState(requestId);
-  const [day] = useState(() => businessDay(state));
+  const day = activeVehicleDay(state, vehicleId);
   const [attempt, setAttempt] = useState(false);
   const [tax, setTax] = useState("");
   const [discount, setDiscount] = useState("");
