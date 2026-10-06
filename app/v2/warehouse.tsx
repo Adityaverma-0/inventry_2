@@ -48,6 +48,12 @@ export function WarehousePage({ returns = false }: { returns?: boolean }) {
     [recovering, setRecovering] = useState(false);
   const [rejectedRetry, setRejectedRetry] = useState(false);
   const storageKey = `sanket-stock-request:${state.user.id}`;
+
+  const currentReport = useMemo(() => {
+    return state.reports.find(r => r.vehicleId === vehicle && r.day === businessDay(state));
+  }, [state.reports, vehicle, state]);
+  const reportApproved = currentReport?.status === "APPROVED";
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey);
@@ -137,14 +143,16 @@ export function WarehousePage({ returns = false }: { returns?: boolean }) {
         {returns ? (
           <>
             <Button
-              disabled={!activeVehicle || !online || !!recovery}
+              title={reportApproved ? "" : "Daily report must be submitted and approved first."}
+              disabled={!activeVehicle || !online || !!recovery || !reportApproved}
               onClick={() => setKind("RETURN")}
             >
               Unload to warehouse
             </Button>
             <Button
+              title={reportApproved ? "" : "Daily report must be submitted and approved first."}
               variant="secondary"
-              disabled={!activeVehicle || !online || !!recovery}
+              disabled={!activeVehicle || !online || !!recovery || !reportApproved}
               onClick={() => setKind("HOLD")}
             >
               Hold all stock in vehicle

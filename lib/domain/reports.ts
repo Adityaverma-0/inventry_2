@@ -131,6 +131,34 @@ export async function buildReport(
       CROSS JOIN sanket.settings s WHERE w.id=$1 AND s.id=true`,
     [v.warehouse_id],
   );
+
+  const salesStats = await db.query(
+    `SELECT
+      SUM(CAST(si.snapshot->>'grandTotal' AS numeric)) as total_sales,
+      SUM(
+        (SELECT COALESCE(SUM(CAST(p->>'amount' AS numeric)), 0)
+         FROM jsonb_array_elements(si.snapshot->'payments') p
+         WHERE p->>'method' = 'UPI'
+        )
+      ) as upi_sales,
+      SUM(
+        (SELECT COALESCE(SUM(CAST(p->>'amount' AS numeric)), 0)
+         FROM jsonb_array_elements(si.snapshot->'payments') p
+         WHERE p->>'method' = 'Bank Transfer'
+        )
+      ) as bank_sales
+     FROM sanket.sales_invoices si
+     JOIN sanket.stock_documents sd ON si.sale_id = sd.id
+     WHERE sd.vehicle_id = $1 AND sd.day = $2`,
+    [vehicleId, day]
+  );
+  const stats = salesStats.rows[0];
+  const totalSales = Number(stats?.total_sales || 0);
+  const upiSales = Number(stats?.upi_sales || 0);
+  const bankSales = Number(stats?.bank_sales || 0);
+  // Expected cash is whatever wasn't paid via UPI or Bank (assuming it's cash or credit, for now we expect all remaining as Cash)
+  const cashExpected = (totalSales - upiSales - bankSales) * 100;
+
   // These labels belong to this revision, just like its packaging factors.
   return {
     businessName: identity?.business_name,
@@ -150,6 +178,7 @@ export async function buildReport(
     status: "DRAFT",
     notes: "",
     lines,
+    cashExpected,
     submittedAt: "",
     decidedAt: null,
     decidedBy: null,
